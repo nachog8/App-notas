@@ -5,6 +5,9 @@ import { MdAdd } from "react-icons/md";
 import AddEditNotes from "./AddEditNotes";
 import Modal from "react-modal";
 
+// Asegurar accesibilidad configurando el elemento principal de la app
+Modal.setAppElement("#root");
+
 const Home = () => {
   const [openAddEditModal, setOpenAddEditModal] = useState({
     isShown: false,
@@ -17,7 +20,7 @@ const Home = () => {
       <NavBar />
 
       <div className="container mx-auto">
-        {/*aca cambiamos el estilo de la grilla*/}
+        {/* Estilo de la grilla */}
         <div className="grid grid-cols-3 gap-4 mt-8">
           <NoteCard
             title="Meeting el 7 de Abril"
@@ -33,7 +36,7 @@ const Home = () => {
       </div>
 
       <button
-        className="w-16 h-16 flex items-center justify-center rounded-2xl bg-primary hover:bg-blue-600 absolute right-10 bottom-10"
+        className="w-16 h-16 flex items-center justify-center rounded-2xl bg-primary hover:bg-blue-600 fixed right-10 bottom-10"
         onClick={() => {
           setOpenAddEditModal({ isShown: true, type: "add", data: null });
         }}
@@ -43,21 +46,25 @@ const Home = () => {
 
       <Modal
         isOpen={openAddEditModal.isShown}
-        onRequestClose={() => {}}
+        onRequestClose={() =>
+          setOpenAddEditModal({ isShown: false, type: "add", data: null })
+        }
         style={{
           overlay: {
-            backgroundColor: "rgba(0, 0, 0, 0.2)",
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
           },
         }}
-        contentLabel=""
-        className="w-[40%] max-h-3/4 bg-white rounded-md mx-14 p-5 overflow-scroll"
+        className="bg-white w-[40%] max-h-[80%] rounded-lg shadow-lg p-5 overflow-auto"
       >
         <AddEditNotes
-        type={openAddEditModal.type}
-        noteData={openAddEditModal.data}
-        onClose={() =>{
-          setOpenAddEditModal({ isShow: false, type: "add", data: null});
-        }} 
+          type={openAddEditModal.type}
+          noteData={openAddEditModal.data}
+          onClose={() =>
+            setOpenAddEditModal({ isShown: false, type: "add", data: null })
+          }
         />
       </Modal>
     </>

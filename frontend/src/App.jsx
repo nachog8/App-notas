@@ -7,9 +7,9 @@ import SingUp from "./pages/SingUp/SingUp";
 const routes = (
   <Router>
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/singUp" element={<SingUp />} />
+      <Route path="/dashboard" exact element={<Home />} />
+      <Route path="/login" exact element={<Login />} />
+      <Route path="/singUp" exact element={<SingUp />} />
     </Routes>
   </Router>
 );
