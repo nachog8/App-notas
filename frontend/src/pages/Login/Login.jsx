@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar/Navbar";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordInput from "../../components/Input/PasswordInput";
@@ -9,8 +9,15 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-
   const navigate = useNavigate();
+
+  // Verifica si el usuario ya está logueado
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard"); // Redirige al dashboard si ya hay un token
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -35,8 +42,8 @@ const Login = () => {
 
       //Handle successful login response
       if (response.data && response.data.accessToken) {
-        localStorage.setItem("token", response.data.accessToken);
-        navigate("/dashboard");
+        localStorage.setItem("token", response.data.accessToken); // Guarda el token en localStorage
+        navigate("/dashboard"); // Redirige al dashboard después de iniciar sesión
       }
     } catch (error) {
       //Handle login error

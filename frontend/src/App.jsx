@@ -1,21 +1,34 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import SingUp from "./pages/SingUp/SingUp";
-
-const routes = (
-  <Router>
-    <Routes>
-      <Route path="/dashboard" exact element={<Home />} />
-      <Route path="/login" exact element={<Login />} />
-      <Route path="/singUp" exact element={<SingUp />} />
-    </Routes>
-  </Router>
-);
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 
 const App = () => {
-  return <div>{routes}</div>;
+  return (
+    <Router>
+      <Routes>
+        {/* Redirigir la raíz "/" al login */}
+        <Route path="/" element={<Navigate to="/login" />} />
+
+        {/* Ruta protegida que solo se muestra si el usuario está autenticado */}
+        <Route
+          path="/dashboard"
+          element={<ProtectedRoute element={<Home />} />}
+        />
+
+        {/* Rutas públicas */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/singUp" element={<SingUp />} />
+      </Routes>
+    </Router>
+  );
 };
 
 export default App;
