@@ -9,6 +9,7 @@ import Modal from "react-modal";
 import Toast from "../../components/ToastMessage/Toast";
 import EmptyCard from "../../components/EmptyCard/EmptyCard";
 import AddNotesImg from "../../assets/images/add-notes.svg";
+import NoDataImg from "../../assets/images/no-data.svg";
 
 // Asegurar accesibilidad configurando el elemento principal de la app
 Modal.setAppElement("#root");
@@ -28,6 +29,8 @@ const Home = () => {
 
   const [allNotes, setAllNotes] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
+
+  const [isSearch, setIsSearch] = useState(false);
 
   const navigate = useNavigate();
 
@@ -96,6 +99,53 @@ const Home = () => {
     }
   };
 
+  //Search Note
+  const onSearchNote = async (query) => {
+    try {
+      const response = await axiosInstance.get("/search-notes", {
+        params: { query },
+      });
+
+      if (response.data && response.data.notes) {
+        setIsSearch(true);
+        setAllNotes(response.data.notes);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const updateIsPinned = async (noteData) => {
+    const noteId = noteData._id;
+
+    try {
+      const response = await axiosInstance.put(
+        "/update-note-pinned/" + noteId,
+        {
+          isPinned: !noteData.isPinned,
+        }
+      );
+
+      if (response.data && response.data.note) {
+        showToastMessage(
+          noteData.isPinned
+            ? "Nota desanclada correctamente"
+            : "Nota anclada correctamente"
+        );
+        getAllNotes();
+      }
+    } catch (error) {
+      console.log(
+        "Ocurrió un error inesperado. Por favor, inténtelo de nuevo."
+      );
+    }
+  };
+
+  const handleClearSearch = () => {
+    setIsSearch(false);
+    getAllNotes();
+  };
+
   useEffect(() => {
     getAllNotes();
     getUserInfo();
@@ -104,7 +154,11 @@ const Home = () => {
 
   return (
     <>
-      <NavBar userInfo={userInfo} />
+      <NavBar
+        userInfo={userInfo}
+        onSearchNote={onSearchNote}
+        handleClearSearch={handleClearSearch}
+      />
 
       <div className="container mx-auto">
         {allNotes.length > 0 ? (
@@ -119,15 +173,19 @@ const Home = () => {
                 isPinned={item.isPinned}
                 onEdit={() => handleEdit(item)}
                 onDelete={() => deleteNote(item)}
-                OnPinNote={() => {}}
+                OnPinNote={() => updateIsPinned(item)}
               />
             ))}
           </div>
         ) : (
           <EmptyCard
-            imgSrc={AddNotesImg}
-            message={`¡Crear tu primera nota! Haz clic en el botón "Agregar" 
-              para anotar tus pensamientos, ideas y recordatorios. ¡Comencemos!`}
+            imgSrc={isSearch ? NoDataImg : AddNotesImg}
+            message={
+              isSearch
+                ? `Oops! No se encontraron notas que coincidan con tu búsqueda.`
+                : `¡Crear tu primera nota! Haz clic en el botón "Agregar" 
+              para anotar tus pensamientos, ideas y recordatorios. ¡Comencemos!`
+            }
           />
         )}
       </div>
