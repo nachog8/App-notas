@@ -52,7 +52,7 @@ const TagInput = ({ tags, setTags }) => {
           type="text"
           value={inputValue}
           className="text-sm bg-transparent border px-3 py-2 rounded outline-none"
-          placeholder="Add tags"
+          placeholder="Agrega un tag"
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
         />

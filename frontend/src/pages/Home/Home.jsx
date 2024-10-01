@@ -6,6 +6,9 @@ import AddEditNotes from "./AddEditNotes";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import Modal from "react-modal";
+import Toast from "../../components/ToastMessage/Toast";
+import EmptyCard from "../../components/EmptyCard/EmptyCard";
+import AddNotesImg from "../../assets/images/add-notes.svg";
 
 // Asegurar accesibilidad configurando el elemento principal de la app
 Modal.setAppElement("#root");
@@ -17,9 +20,28 @@ const Home = () => {
     data: null,
   });
 
+  const [showToastMsg, setShowToastMsg] = useState({
+    isShown: false,
+    message: "",
+    type: "add",
+  });
+
+  const [allNotes, setAllNotes] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
 
   const navigate = useNavigate();
+
+  const handleEdit = (noteDetails) => {
+    setOpenAddEditModal({ isShown: true, type: "edit", data: noteDetails });
+  };
+
+  const showToastMessage = (message, type) => {
+    setShowToastMsg({ isShown: true, message, type });
+  };
+
+  const handleCloseToast = () => {
+    setShowToastMsg({ isShown: false, message: "" });
+  };
 
   //Get User Info
   const getUserInfo = async () => {
@@ -36,7 +58,46 @@ const Home = () => {
     }
   };
 
+  //Get all notes
+  const getAllNotes = async () => {
+    try {
+      const response = await axiosInstance.get("/get-all-notes");
+      if (response.data && response.data.notes) {
+        setAllNotes(response.data.notes);
+      }
+    } catch (error) {
+      console.log(
+        "Ocurrió un error inesperado. Por favor, inténtelo de nuevo."
+      );
+    }
+  };
+
+  //Delete Note
+  const deleteNote = async (data) => {
+    const noteId = data._id;
+
+    try {
+      const response = await axiosInstance.delete("/delete-note/" + noteId);
+
+      if (response.data && !response.data.error) {
+        showToastMessage("Nota eliminada correctamente", "delete");
+        getAllNotes();
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        console.log(
+          "Ocurrió un error inesperado. Por favor, inténtelo de nuevo."
+        );
+      }
+    }
+  };
+
   useEffect(() => {
+    getAllNotes();
     getUserInfo();
     return () => {};
   }, []);
@@ -46,19 +107,29 @@ const Home = () => {
       <NavBar userInfo={userInfo} />
 
       <div className="container mx-auto">
-        {/* Estilo de la grilla */}
-        <div className="grid grid-cols-3 gap-4 mt-8">
-          <NoteCard
-            title="Meeting el 7 de Abril"
-            date="7 de Abril"
-            content="Meeting el 7 de Abril"
-            tags="Meeting"
-            isPinned={true}
-            onEdit={() => {}}
-            onDelete={() => {}}
-            OnPinNote={() => {}}
+        {allNotes.length > 0 ? (
+          <div className="grid grid-cols-3 gap-4 mt-8">
+            {allNotes.map((item, index) => (
+              <NoteCard
+                key={item._id}
+                title={item.title}
+                date={item.createOn}
+                content={item.content}
+                tags={item.tags}
+                isPinned={item.isPinned}
+                onEdit={() => handleEdit(item)}
+                onDelete={() => deleteNote(item)}
+                OnPinNote={() => {}}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyCard
+            imgSrc={AddNotesImg}
+            message={`¡Crear tu primera nota! Haz clic en el botón "Agregar" 
+              para anotar tus pensamientos, ideas y recordatorios. ¡Comencemos!`}
           />
-        </div>
+        )}
       </div>
 
       <button
@@ -91,8 +162,17 @@ const Home = () => {
           onClose={() =>
             setOpenAddEditModal({ isShown: false, type: "add", data: null })
           }
+          getAllNotes={getAllNotes}
+          showToastMessage={showToastMessage}
         />
       </Modal>
+
+      <Toast
+        isShown={showToastMsg.isShown}
+        message={showToastMsg.message}
+        type={showToastMsg.type}
+        onClose={handleCloseToast}
+      />
     </>
   );
 };
